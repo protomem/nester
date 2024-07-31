@@ -11,11 +11,11 @@ private:
     std::uint8_t _register_a;
     std::uint8_t _register_x;
 
-    void _Lda(const std::uint8_t param);
+    void _Lda(std::uint8_t param);
     void _Tax();
     void _Inx();
 
-    void _UpdateZeroAndNegativeFlags(const std::uint8_t result);
+    void _UpdateZeroAndNegativeFlags(std::uint8_t result);
 
 public:
     CPU();

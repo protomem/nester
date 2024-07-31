@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Opcode {
+enum class OpCodes {
     BRK = 0x00,
     LDA = 0xA9,
     TAX = 0xAA,
