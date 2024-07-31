@@ -1,62 +1,158 @@
 #include "cpu.hpp"
 
+#include <stdexcept>
+
 #include "opcode.hpp"
 
 CPU::CPU()
     : _status(0)
-    , _program_counter(0)
-    , _register_a(0)
-    , _register_x(0)
+    , _programCounter(0)
+    , _registerA(0)
+    , _registerX(0)
+    , _registerY(0)
+    , _memory()
 {
 }
 
-std::uint8_t CPU::Run(const std::vector<std::uint8_t>& program)
+void CPU::Load(const std::vector<std::uint8_t>& program)
+{
+    for (std::size_t i = 0; i < program.size(); ++i) {
+        const std::size_t addr = ADDRESS_PROGRAM + i;
+        _memory[addr] = program[i];
+    }
+    _MemWrite16(ADDRESS_PROGRAM_COUNTER, ADDRESS_PROGRAM);
+}
+
+void CPU::Prepare()
+{
+    _registerA = 0;
+    _registerX = 0;
+    _registerY = 0;
+    _status = 0;
+    _programCounter = _MemRead16(ADDRESS_PROGRAM_COUNTER);
+}
+
+void CPU::Run()
 {
     while (true) {
-        auto opcode = static_cast<OpCodes>(program[this->_program_counter]);
-        this->_program_counter++;
+        const std::uint8_t code = _MemRead(_programCounter);
+        const OpCode opcode = OPCODES.at(code); // ? NOTE: Handle not found key
 
-        switch (opcode) {
-        case OpCodes::BRK:
-            goto EXIT_LOOP;
+        _programCounter += 1;
+        const std::uint16_t programCounterState = _programCounter;
 
-        case OpCodes::TAX:
+        switch (code) {
+        case 0xa9 | 0xa5 | 0xb5 | 0xad | 0xbd | 0xb9 | 0xa1 | 0xb1:
+            _Lda(opcode.mode);
+            break;
+
+        case 0xAA:
             _Tax();
             break;
 
-        case OpCodes::INX:
+        case 0xE8:
             _Inx();
             break;
 
-        case OpCodes::LDA:
-            const auto param = program[_program_counter];
-            _program_counter++;
+        case 0x00:
+            return;
 
-            _Lda(param);
-            break;
+        default:
+            throw std::runtime_error("Unimplemented opcode");
+        }
+
+        if (programCounterState == _programCounter) {
+            _programCounter = opcode.size - 1;
         }
     }
-EXIT_LOOP:
-
-    return _status;
 }
 
-void CPU::_Lda(std::uint8_t param)
+void CPU::Run(const std::vector<std::uint8_t>& program)
 {
-    _register_a = param;
-    _UpdateZeroAndNegativeFlags(param);
+    Load(program);
+    Prepare();
+    Run();
 }
 
-void CPU::_Tax()
+std::uint8_t CPU::_MemRead(std::uint16_t addr)
 {
-    _register_x = _register_a;
-    _UpdateZeroAndNegativeFlags(_register_x);
+    return _memory[addr];
 }
 
-void CPU::_Inx()
+std::uint16_t CPU::_MemRead16(std::uint16_t addr)
 {
-    _register_x++;
-    _UpdateZeroAndNegativeFlags(_register_x);
+    const std::uint16_t lo = _MemRead(addr);
+    const std::uint16_t hi = _MemRead(addr + 1);
+    return (hi << 8) | lo;
+}
+
+void CPU::_MemWrite(std::uint16_t addr, std::uint8_t data)
+{
+    _memory[addr] = data;
+}
+
+void CPU::_MemWrite16(std::uint16_t addr, std::uint16_t data)
+{
+    const std::uint8_t lo = data & 0xFF;
+    const std::uint8_t hi = data >> 8;
+    _MemWrite(addr, lo);
+    _MemWrite(addr + 1, hi);
+}
+
+std::uint16_t CPU::_GetOperandAddress(AddressingMode mode)
+{
+    switch (mode) {
+    case AddressingMode::Immediate:
+        return _programCounter;
+    case AddressingMode::ZeroPage:
+        return _MemRead(_programCounter);
+    case AddressingMode::Absolute:
+        return _MemRead16(_programCounter);
+
+    case AddressingMode::ZeroPageX: {
+        const std::uint8_t base = _MemRead(_programCounter);
+        return (base + _registerX); // ! NOTE: Overflow expected
+    }
+
+    case AddressingMode::ZeroPageY: {
+        const std::uint8_t base = _MemRead(_programCounter);
+        return (base + _registerY); // ! NOTE: Overflow expected
+    }
+
+    case AddressingMode::AbsoluteX: {
+        const std::uint16_t base = _MemRead16(_programCounter);
+        return (base + _registerX); // ! NOTE: Overflow expected
+    }
+
+    case AddressingMode::AbsoluteY: {
+        const std::uint16_t base = _MemRead16(_programCounter);
+        return (base + _registerY); // ! NOTE: Overflow expected
+    }
+
+    case AddressingMode::IndirectX: {
+        std::uint8_t base = _MemRead(_programCounter);
+        base += _registerX;
+
+        const std::uint16_t lo = _MemRead(base);
+        const std::uint16_t hi = _MemRead(base + 1);
+
+        return hi << 8 | lo;
+    }
+
+    case AddressingMode::IndirectY: {
+        const std::uint8_t base = _MemRead(_programCounter);
+
+        const std::uint16_t lo = _MemRead(base);
+        const std::uint16_t hi = _MemRead(base + 1);
+
+        const std::uint16_t deref = hi << 8 | lo;
+        return deref + _registerY;
+    }
+
+    case AddressingMode::None:
+    default:
+        throw std::runtime_error("Unsupported addressing mode");
+    }
 }
 
 void CPU::_UpdateZeroAndNegativeFlags(std::uint8_t result)
@@ -72,4 +168,25 @@ void CPU::_UpdateZeroAndNegativeFlags(std::uint8_t result)
     } else {
         _status &= 0b01111111;
     }
+}
+
+void CPU::_Lda(AddressingMode mode)
+{
+    const std::uint16_t addr = _GetOperandAddress(mode);
+    const std::uint8_t data = _MemRead(addr);
+
+    _registerA = data;
+    _UpdateZeroAndNegativeFlags(data);
+}
+
+void CPU::_Tax()
+{
+    _registerX = _registerA;
+    _UpdateZeroAndNegativeFlags(_registerX);
+}
+
+void CPU::_Inx()
+{
+    _registerX += 1;
+    _UpdateZeroAndNegativeFlags(_registerX);
 }

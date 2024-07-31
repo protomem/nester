@@ -3,22 +3,42 @@
 #include <cstdint>
 #include <vector>
 
+#include "addressing_mode.hpp"
+
+constexpr std::uint16_t MEMORY_SIZE = 0xFFFF;
+constexpr std::uint16_t ADDRESS_PROGRAM = 0x8000;
+constexpr std::uint16_t ADDRESS_PROGRAM_COUNTER = 0xFFFC;
+
 class CPU {
-private:
+public:
     std::uint8_t _status;
-    std::uint16_t _program_counter;
+    std::uint16_t _programCounter;
 
-    std::uint8_t _register_a;
-    std::uint8_t _register_x;
+    std::uint8_t _registerA;
+    std::uint8_t _registerX;
+    std::uint8_t _registerY;
 
-    void _Lda(std::uint8_t param);
-    void _Tax();
-    void _Inx();
+    std::uint8_t _memory[MEMORY_SIZE]; // ? NOTE: Maby use vector
+
+    std::uint8_t _MemRead(std::uint16_t addr);
+    std::uint16_t _MemRead16(std::uint16_t addr);
+
+    void _MemWrite(std::uint16_t addr, std::uint8_t data);
+    void _MemWrite16(std::uint16_t addr, std::uint16_t data);
+
+    std::uint16_t _GetOperandAddress(AddressingMode mode);
 
     void _UpdateZeroAndNegativeFlags(std::uint8_t result);
 
-public:
+    void _Lda(AddressingMode mode);
+    void _Tax();
+    void _Inx();
+
     CPU();
 
-    std::uint8_t Run(const std::vector<std::uint8_t>& program);
+    void Load(const std::vector<std::uint8_t>& program);
+    void Prepare();
+
+    void Run();
+    void Run(const std::vector<std::uint8_t>& program);
 };

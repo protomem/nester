@@ -1,6 +1,6 @@
 #pragma once
 
-enum class AdressingMode {
+enum class AddressingMode {
     Immediate,
     ZeroPage,
     ZeroPageX,

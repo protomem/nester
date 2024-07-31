@@ -11,7 +11,7 @@ project "nester"
     targetdir "build/%{cfg.buildcfg}"
     flags { "FatalCompileWarnings", "FatalLinkWarnings" }
 
-    files { "**.hpp", "**.cpp" }
+    files { "**.cpp" }
 
     filter "configurations:Debug"
         defines { "DEBUG" }
