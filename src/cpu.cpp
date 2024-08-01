@@ -41,37 +41,24 @@ void CPU::Run()
         _programCounter += 1;
         const std::uint16_t programCounterState = _programCounter;
 
-        switch (code) {
-        case 0xA9:
-        case 0xA5:
-        case 0xB5:
-        case 0xAD:
-        case 0xBD:
-        case 0xB9:
-        case 0xA1:
-        case 0xB1:
+        switch (opcode.mnemonic) {
+        case Mnemonic::LDA:
             _Lda(opcode.mode);
             break;
 
-        case 0x85:
-        case 0x95:
-        case 0x8D:
-        case 0x9D:
-        case 0x99:
-        case 0x81:
-        case 0x91:
+        case Mnemonic::STA:
             _Sta(opcode.mode);
             break;
 
-        case 0xAA:
+        case Mnemonic::TAX:
             _Tax();
             break;
 
-        case 0xE8:
+        case Mnemonic::INX:
             _Inx();
             break;
 
-        case 0x00:
+        case Mnemonic::BRK:
             return;
 
         default:
