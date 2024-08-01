@@ -69,7 +69,7 @@ void CPU::Run()
         }
 
         if (programCounterState == _programCounter) {
-            _programCounter = opcode.size - 1;
+            _programCounter += opcode.size - 1;
         }
     }
 }
