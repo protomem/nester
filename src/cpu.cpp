@@ -42,7 +42,14 @@ void CPU::Run()
         const std::uint16_t programCounterState = _programCounter;
 
         switch (code) {
-        case 0xa9 | 0xa5 | 0xb5 | 0xad | 0xbd | 0xb9 | 0xa1 | 0xb1:
+        case 0xA9:
+        case 0xA5:
+        case 0xB5:
+        case 0xAD:
+        case 0xBD:
+        case 0xB9:
+        case 0xA1:
+        case 0xB1:
             _Lda(opcode.mode);
             break;
 
