@@ -53,6 +53,16 @@ void CPU::Run()
             _Lda(opcode.mode);
             break;
 
+        case 0x85:
+        case 0x95:
+        case 0x8D:
+        case 0x9D:
+        case 0x99:
+        case 0x81:
+        case 0x91:
+            _Sta(opcode.mode);
+            break;
+
         case 0xAA:
             _Tax();
             break;
@@ -118,22 +128,22 @@ std::uint16_t CPU::_GetOperandAddress(AddressingMode mode)
 
     case AddressingMode::ZeroPageX: {
         const std::uint8_t base = _MemRead(_programCounter);
-        return (base + _registerX); // ! NOTE: Overflow expected
+        return (base + _registerX);
     }
 
     case AddressingMode::ZeroPageY: {
         const std::uint8_t base = _MemRead(_programCounter);
-        return (base + _registerY); // ! NOTE: Overflow expected
+        return (base + _registerY);
     }
 
     case AddressingMode::AbsoluteX: {
         const std::uint16_t base = _MemRead16(_programCounter);
-        return (base + _registerX); // ! NOTE: Overflow expected
+        return (base + _registerX);
     }
 
     case AddressingMode::AbsoluteY: {
         const std::uint16_t base = _MemRead16(_programCounter);
-        return (base + _registerY); // ! NOTE: Overflow expected
+        return (base + _registerY);
     }
 
     case AddressingMode::IndirectX: {
@@ -184,6 +194,12 @@ void CPU::_Lda(AddressingMode mode)
 
     _registerA = data;
     _UpdateZeroAndNegativeFlags(data);
+}
+
+void CPU::_Sta(AddressingMode mode)
+{
+    const std::uint16_t addr = _GetOperandAddress(mode);
+    _MemWrite(addr, _registerA);
 }
 
 void CPU::_Tax()

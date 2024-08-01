@@ -18,7 +18,7 @@ public:
     std::uint8_t _registerX;
     std::uint8_t _registerY;
 
-    std::uint8_t _memory[MEMORY_SIZE]; // ? NOTE: Maby use vector
+    std::uint8_t _memory[MEMORY_SIZE];
 
     std::uint8_t _MemRead(std::uint16_t addr);
     std::uint16_t _MemRead16(std::uint16_t addr);
@@ -33,6 +33,7 @@ public:
     void _Lda(AddressingMode mode);
     void _Tax();
     void _Inx();
+    void _Sta(AddressingMode mode);
 
     CPU();
 

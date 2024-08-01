@@ -41,5 +41,13 @@ const std::unordered_map<std::uint8_t, OpCode> OPCODES {
     { 0xBD, OpCode(0xBD, "LDA", 3, 4, AddressingMode::AbsoluteX) }, // ? NOTE: +1 cycles if page crossed
     { 0xB9, OpCode(0xB9, "LDA", 3, 4, AddressingMode::AbsoluteY) }, // ? NOTE: +1 cycles if page crossed
     { 0xA1, OpCode(0xA1, "LDA", 2, 6, AddressingMode::IndirectX) },
-    { 0xB1, OpCode(0xB1, "LDA", 2, 5, AddressingMode::IndirectY) } // ? NOTE: +1 cycles if page crossed
+    { 0xB1, OpCode(0xB1, "LDA", 2, 5, AddressingMode::IndirectY) }, // ? NOTE: +1 cycles if page crossed
+
+    { 0x85, OpCode(0x85, "STA", 2, 3, AddressingMode::ZeroPage) },
+    { 0x95, OpCode(0x95, "STA", 2, 4, AddressingMode::ZeroPageX) },
+    { 0x8D, OpCode(0x8D, "STA", 3, 4, AddressingMode::Absolute) },
+    { 0x9D, OpCode(0x9D, "STA", 3, 5, AddressingMode::AbsoluteX) },
+    { 0x99, OpCode(0x99, "STA", 3, 5, AddressingMode::AbsoluteY) },
+    { 0x81, OpCode(0x81, "STA", 2, 6, AddressingMode::IndirectX) },
+    { 0x91, OpCode(0x91, "STA", 2, 6, AddressingMode::IndirectY) },
 };

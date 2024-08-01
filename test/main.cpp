@@ -40,6 +40,16 @@ TEST(CPU, Test_0xE8_Inx_Overflow)
     ASSERT_EQ(cpu._registerX, 1);
 }
 
+TEST(CPU, Test_0x85_STA_ZeroPage)
+{
+    auto a = 0x30;
+    CPU cpu;
+    cpu.Run({ 0xA9, 0x0A, 0x85, 0x30, 0x00 });
+
+    ASSERT_EQ(cpu._registerA, 10);
+    ASSERT_EQ(cpu._MemRead(0x30), 11);
+}
+
 TEST(CPU, Test_Working_Together)
 {
     CPU cpu;
