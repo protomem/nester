@@ -17,7 +17,16 @@ build:
 	@echo "---"
 	@echo "Building..."
 	@echo "---"
-	@cd build
+	@cd build && make
+
+
+.PHONY: test
+test: build
+	@echo
+	@echo "---"
+	@echo "Testing..."
+	@echo "---"
+	@./build/Debug/nester-tests
 
 
 .PHONY: clean
